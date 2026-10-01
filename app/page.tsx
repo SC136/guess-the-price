@@ -1,69 +1,57 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+import Link from "next/link";
+import { connection } from "next/server";
+import { BestScore } from "@/components/BestScore";
+import { MAX_ROUNDS } from "@/lib/config";
+import { currencySymbol } from "@/lib/format";
+import { listActiveProducts } from "@/lib/store";
 
-export default function Home() {
+export default async function Home() {
+  await connection(); // the catalog changes at runtime, so never prerender this page
+  const productCount = (await listActiveProducts()).length;
+
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className={styles.intro}>
-          <h1>
-            To get started, edit the{" "}
-            <code className={styles.code}>page.tsx</code> file.
-          </h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <main className="app">
+      <header className="brand">
+        <span className="brand-mark" aria-hidden="true">
+          {currencySymbol()}
+        </span>
+        <h1>Guess the Price</h1>
+        <p>Real products. Real prices. How well do you know the shelf?</p>
+      </header>
+
+      {productCount === 0 ? (
+        <section className="empty-state">
+          <h2>No products yet</h2>
+          <p>The game needs real products to guess. Add some in the admin dashboard to get started.</p>
+          <Link href="/admin" className="btn btn-primary">
+            Open the admin dashboard
+          </Link>
+        </section>
+      ) : (
+        <>
+          <div className="mode-grid">
+            <Link href="/play/options" className="mode-card">
+              <span className="mode-title">Pick the price</span>
+              <span className="mode-desc">Four prices, only one is real. Earn 100 points for every right pick.</span>
+              <BestScore mode="options" />
+            </Link>
+            <Link href="/play/guess" className="mode-card">
+              <span className="mode-title">Exact guess</span>
+              <span className="mode-desc">
+                Type your own number. The closer you land, the more you score, up to 1,000 per round.
+              </span>
+              <BestScore mode="guess" />
+            </Link>
+          </div>
+          <p className="fine-print">
+            {Math.min(productCount, MAX_ROUNDS)} products per game · {productCount} in the catalog
           </p>
-        </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+        </>
+      )}
+
+      <p className="fine-print">
+        <Link href="/admin">Admin</Link>
+      </p>
+    </main>
   );
 }
