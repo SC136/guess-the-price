@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useActionState, useEffect, useMemo, useState } from "react";
 import { saveProductAction } from "@/app/admin/actions";
+import { MAX_IMAGE_BYTES } from "@/lib/config";
 import { currencySymbol } from "@/lib/format";
 import type { Product } from "@/lib/types";
 import { ProductImage } from "./ProductImage";
@@ -17,10 +18,11 @@ interface ProductFormProps {
 export function ProductForm({ product, categories }: ProductFormProps) {
   const [state, action, pending] = useActionState(saveProductAction, undefined);
   const [file, setFile] = useState<File | null>(null);
+  const [fileError, setFileError] = useState("");
   const preview = useMemo(() => (file ? URL.createObjectURL(file) : null), [file]);
   useEffect(() => () => void (preview && URL.revokeObjectURL(preview)), [preview]);
 
-  const errors = state?.errors ?? {};
+  const errors = { ...state?.errors, ...(fileError ? { image: fileError } : {}) };
   // After a failed submit React resets the form, so re-apply what the admin typed.
   const initial = (field: string, fallback = "") => state?.values?.[field] ?? fallback;
   const externalImage = product?.imageUrl.startsWith("http") ? product.imageUrl : "";
@@ -117,13 +119,24 @@ export function ProductForm({ product, categories }: ProductFormProps) {
             {currentImage ? <ProductImage src={currentImage} alt="Product photo preview" /> : <span>No photo yet</span>}
           </div>
           <div className="photo-inputs">
-            <Field label="Upload a photo" error={errors.image} htmlFor="image" hint="JPG, PNG or WebP, up to 5 MB.">
+            <Field label="Upload a photo" error={errors.image} htmlFor="image" hint={`JPG, PNG or WebP, up to ${MAX_IMAGE_BYTES / 1024 / 1024} MB.`}>
               <input
                 id="image"
                 name="image"
                 type="file"
                 accept="image/jpeg,image/png,image/webp"
-                onChange={(event) => setFile(event.target.files?.[0] ?? null)}
+                onChange={(event) => {
+                  const picked = event.target.files?.[0] ?? null;
+                  // Check here too: a body over the host's limit is rejected before the server can explain why.
+                  if (picked && picked.size > MAX_IMAGE_BYTES) {
+                    setFileError(`That photo is ${(picked.size / 1024 / 1024).toFixed(1)} MB. The limit is ${MAX_IMAGE_BYTES / 1024 / 1024} MB.`);
+                    event.target.value = "";
+                    setFile(null);
+                    return;
+                  }
+                  setFileError("");
+                  setFile(picked);
+                }}
               />
             </Field>
             <Field

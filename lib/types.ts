@@ -21,6 +21,19 @@ export interface Product {
   updatedAt: string;
 }
 
+/** Fields an admin supplies when creating or editing a product. */
+export type ProductInput = Omit<Product, "id" | "createdAt" | "updatedAt">;
+
+/** Storage-agnostic catalog operations; implemented by the local JSON file and by Redis. */
+export interface Catalog {
+  list(): Promise<Product[]>;
+  get(id: string): Promise<Product | undefined>;
+  create(input: ProductInput): Promise<Product>;
+  /** Returns the previous version too, so callers can clean up a replaced image. */
+  update(id: string, patch: Partial<ProductInput>): Promise<{ before: Product; after: Product } | undefined>;
+  delete(id: string): Promise<Product | undefined>;
+}
+
 /** What the player is allowed to see before answering: no price, no store link. */
 export interface PublicRound {
   id: string;

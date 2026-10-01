@@ -8,9 +8,12 @@
     "start": "next start",
     "lint": "eslint",
     "test": "node --test \"lib/**/*.test.ts\"",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "migrate:catalog": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --env-file-if-exists=.env.vercel scripts/migrate-catalog.ts"
   },
   "dependencies": {
+    "@upstash/redis": "^1.39.0",
+    "@vercel/blob": "^2.8.0",
     "jose": "^6.2.12",
     "next": "16.3.8",
     "react": "19.2.8",
@@ -25,5 +28,8 @@
     "eslint": "^9",
     "eslint-config-next": "16.3.8",
     "typescript": "^5"
+  },
+  "engines": {
+    "node": ">=20.9.0"
   }
 }

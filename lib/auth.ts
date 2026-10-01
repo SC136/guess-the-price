@@ -4,6 +4,7 @@ import { jwtVerify, SignJWT } from "jose";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { cache } from "react";
+import { getRedis } from "./redis";
 
 const COOKIE = "admin_session";
 const SESSION_HOURS = 12;
@@ -65,7 +66,9 @@ export async function requireAdmin(): Promise<void> {
   if (!(await isAdmin())) redirect("/admin/login");
 }
 
-// --- Login throttling: 8 failures per client per 15 minutes (in-memory, per server process). ---
+// --- Login throttling: 8 failures per client per 15 minutes. ---
+// Serverless instances don't share memory (and restart often), so on a deployed site the counters
+// live in Redis. Locally the in-memory map is enough.
 
 const WINDOW_MS = 15 * 60 * 1000;
 const MAX_FAILURES = 8;
@@ -73,22 +76,41 @@ const failures = new Map<string, { count: number; resetAt: number }>();
 
 async function clientKey(): Promise<string> {
   const h = await headers();
-  return h.get("x-forwarded-for")?.split(",")[0].trim() || h.get("x-real-ip") || "local";
+  const ip = h.get("x-forwarded-for")?.split(",")[0].trim() || h.get("x-real-ip") || "local";
+  // Hashed so raw IP addresses never end up as Redis keys.
+  return createHash("sha256").update(ip).digest("hex").slice(0, 16);
 }
 
+const redisKey = (client: string) => `guess-the-price:login-failures:${client}`;
+
 export async function isLockedOut(): Promise<boolean> {
-  const entry = failures.get(await clientKey());
+  const client = await clientKey();
+  const redis = getRedis();
+  if (redis) return ((await redis.get<number>(redisKey(client))) ?? 0) >= MAX_FAILURES;
+
+  const entry = failures.get(client);
   return !!entry && entry.resetAt > Date.now() && entry.count >= MAX_FAILURES;
 }
 
 export async function recordLoginFailure(): Promise<void> {
-  const key = await clientKey();
+  const client = await clientKey();
+  const redis = getRedis();
+  if (redis) {
+    const key = redisKey(client);
+    const count = await redis.incr(key);
+    if (count === 1) await redis.expire(key, WINDOW_MS / 1000);
+    return;
+  }
+
   const now = Date.now();
-  const entry = failures.get(key);
-  if (!entry || entry.resetAt <= now) failures.set(key, { count: 1, resetAt: now + WINDOW_MS });
+  const entry = failures.get(client);
+  if (!entry || entry.resetAt <= now) failures.set(client, { count: 1, resetAt: now + WINDOW_MS });
   else entry.count += 1;
 }
 
 export async function clearLoginFailures(): Promise<void> {
-  failures.delete(await clientKey());
+  const client = await clientKey();
+  const redis = getRedis();
+  if (redis) await redis.del(redisKey(client));
+  else failures.delete(client);
 }

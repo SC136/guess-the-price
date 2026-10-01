@@ -1,13 +1,15 @@
 import Link from "next/link";
 import { connection } from "next/server";
 import { BestScore } from "@/components/BestScore";
+import { SetupNeeded } from "@/components/SetupNeeded";
 import { MAX_ROUNDS } from "@/lib/config";
 import { currencySymbol } from "@/lib/format";
-import { listActiveProducts } from "@/lib/store";
+import { catalogBackend, listActiveProducts } from "@/lib/store";
 
 export default async function Home() {
   await connection(); // the catalog changes at runtime, so never prerender this page
-  const productCount = (await listActiveProducts()).length;
+  const needsSetup = catalogBackend() === "missing";
+  const productCount = needsSetup ? 0 : (await listActiveProducts()).length;
 
   return (
     <main className="app">
@@ -19,7 +21,9 @@ export default async function Home() {
         <p>Real products. Real prices. How well do you know the shelf?</p>
       </header>
 
-      {productCount === 0 ? (
+      {needsSetup ? (
+        <SetupNeeded />
+      ) : productCount === 0 ? (
         <section className="empty-state">
           <h2>No products yet</h2>
           <p>The game needs real products to guess. Add some in the admin dashboard to get started.</p>

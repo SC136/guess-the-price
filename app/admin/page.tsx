@@ -3,10 +3,12 @@ import Link from "next/link";
 import { connection } from "next/server";
 import { DeleteProductButton } from "@/components/DeleteProductButton";
 import { ProductImage } from "@/components/ProductImage";
+import { SetupNeeded } from "@/components/SetupNeeded";
 import { requireAdmin } from "@/lib/auth";
 import { MAX_ROUNDS } from "@/lib/config";
 import { formatPrice, storeName } from "@/lib/format";
-import { listProducts } from "@/lib/store";
+import { photoBackend } from "@/lib/images";
+import { catalogBackend, listProducts } from "@/lib/store";
 import { toggleProductAction } from "./actions";
 
 // The admin layout's title template only applies to child segments, not to this page itself.
@@ -15,6 +17,7 @@ export const metadata: Metadata = { title: { absolute: "Products · Admin" } };
 export default async function AdminDashboard() {
   await requireAdmin();
   await connection();
+  if (catalogBackend() === "missing") return <SetupNeeded />;
   const products = await listProducts();
   const activeCount = products.filter((p) => p.active).length;
 
@@ -33,6 +36,15 @@ export default async function AdminDashboard() {
           + Add product
         </Link>
       </div>
+
+      <p className="storage-status">
+        Catalog: {catalogBackend() === "redis" ? "Upstash Redis" : "local file (data/products.json)"} · Photos:{" "}
+        {photoBackend() === "blob"
+          ? "Vercel Blob"
+          : photoBackend() === "disk"
+            ? "local disk"
+            : "no Blob store connected (paste image addresses instead of uploading)"}
+      </p>
 
       {products.length === 0 ? (
         <section className="admin-card empty">
