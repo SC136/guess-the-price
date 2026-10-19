@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Footer } from "@/components/Footer";
 import { isAdmin } from "@/lib/auth";
 import { logoutAction } from "./actions";
 
@@ -29,7 +30,10 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
           )}
         </nav>
       </header>
-      <main className="admin-main">{children}</main>
+      <main className="admin-main">
+        {children}
+        <Footer showAdmin={false} />
+      </main>
     </div>
   );
 }

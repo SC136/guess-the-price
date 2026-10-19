@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
+import { Footer } from "@/components/Footer";
 import { Game } from "@/components/Game";
 import { SetupNeeded } from "@/components/SetupNeeded";
 import { createRounds } from "@/lib/game";
@@ -24,6 +25,7 @@ export default async function PlayPage({ params }: PageProps<"/play/[mode]">) {
         <Link href="/">← Change mode</Link>
       </nav>
       {needsSetup ? <SetupNeeded /> : <Game mode={mode} initialRounds={rounds} />}
+      <Footer showAdmin={false} />
     </main>
   );
 }

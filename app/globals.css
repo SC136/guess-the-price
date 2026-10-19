@@ -499,6 +499,72 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .link-button { padding: 0; border: 0; background: none; color: var(--ink); font: inherit; font-weight: 600; text-decoration: underline; cursor: pointer; }
 .link-button.danger { color: var(--bad); }
 
+/* ---------- Footer & Signature ---------- */
+
+.footer {
+  margin-top: 36px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.95rem;
+}
+
+.footer-credits {
+  margin: 0;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.signature {
+  font-family: var(--font-signature), "Docallisme", sans-serif;
+  font-size: 1.55em;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+  text-decoration: none;
+  vertical-align: -0.06em;
+  display: inline-block;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.15s ease;
+}
+
+.signature:hover {
+  color: #ffc233;
+  transform: scale(1.15) rotate(-3deg);
+}
+
+.footer-admin {
+  margin: 0;
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.footer-admin a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+.footer-admin a:hover {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.admin-shell .footer {
+  color: var(--ink-soft);
+  margin-top: 48px;
+}
+
+.admin-shell .signature {
+  color: var(--ink);
+}
+
+.admin-shell .signature:hover {
+  color: var(--accent-strong);
+}
+
 /* ---------- Motion ---------- */
 
 @keyframes pop { from { transform: scale(0.96); opacity: 0; } to { transform: scale(1); opacity: 1; } }

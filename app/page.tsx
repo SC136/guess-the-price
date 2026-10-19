@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { connection } from "next/server";
 import { BestScore } from "@/components/BestScore";
+import { Footer } from "@/components/Footer";
 import { SetupNeeded } from "@/components/SetupNeeded";
 import { MAX_ROUNDS } from "@/lib/config";
 import { currencySymbol } from "@/lib/format";
@@ -53,9 +54,7 @@ export default async function Home() {
         </>
       )}
 
-      <p className="fine-print">
-        <Link href="/admin">Admin</Link>
-      </p>
+      <Footer showAdmin={true} />
     </main>
   );
 }
