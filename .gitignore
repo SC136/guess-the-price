@@ -43,3 +43,11 @@ next-env.d.ts
 # Local product catalog and uploaded images
 /data
 !.env.example
+
+.vercel
+.env*
+
+# Skills / agent local files
+.agents
+.claude
+skills-lock.json
