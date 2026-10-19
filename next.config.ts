@@ -6,6 +6,7 @@ const nextConfig: NextConfig = {
       // Admin product photos are uploaded through a server action. Vercel itself rejects request
       // bodies over 4.5 MB, so lib/config.ts caps photos at 4 MB; this limit just sits above that.
       bodySizeLimit: "5mb",
+      allowedOrigins: ["guess-the-price-can-u.vercel.app", "*.vercel.app"],
     },
   },
   async headers() {
