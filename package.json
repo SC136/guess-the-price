@@ -9,6 +9,7 @@
     "lint": "eslint",
     "test": "node --test \"lib/**/*.test.ts\"",
     "typecheck": "tsc --noEmit",
+    "generate:og": "node scripts/generate-og-image.cjs",
     "migrate:catalog": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --env-file-if-exists=.env.vercel scripts/migrate-catalog.ts"
   },
   "dependencies": {
